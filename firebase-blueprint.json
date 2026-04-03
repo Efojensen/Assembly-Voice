@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "Report": {
+      "title": "Report",
+      "description": "A community issue reported by a citizen.",
+      "type": "object",
+      "properties": {
+        "category": { "type": "string", "description": "The category of the issue (e.g., Road damage, Blocked drain)." },
+        "description": { "type": "string", "description": "The citizen's description of the problem." },
+        "photoUrl": { "type": "string", "description": "URL to the uploaded photo." },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "address": { "type": "string" }
+          }
+        },
+        "contactPhone": { "type": "string", "description": "Optional contact phone for SMS updates." },
+        "trackingCode": { "type": "string", "description": "Unique tracking code for the report." },
+        "status": { "type": "string", "enum": ["new", "verified", "assigned", "in-progress", "resolved", "closed"] },
+        "severity": { "type": "number", "description": "AI-calculated severity from 1 to 5." },
+        "aiSummary": { "type": "string", "description": "AI-generated formal summary of the report." },
+        "districtId": { "type": "string", "description": "The ID of the district assembly responsible for the report." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "officerNote": { "type": "string", "description": "Internal note from the assembly officer." },
+        "assignedDept": { "type": "string", "description": "The department assigned to handle the issue." },
+        "reporterUid": { "type": "string", "description": "The UID of the reporter, if authenticated." }
+      },
+      "required": ["category", "description", "trackingCode", "status", "districtId", "createdAt"]
+    },
+    "District": {
+      "title": "District",
+      "description": "A local government assembly.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "resolvedCount": { "type": "number" },
+        "totalCount": { "type": "number" },
+        "avgResolutionTime": { "type": "number" },
+        "performanceScore": { "type": "number" }
+      },
+      "required": ["name"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the platform (citizen, officer, or admin).",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "enum": ["citizen", "officer", "admin"] },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "districtId": { "type": "string", "description": "For officers, the district they belong to." }
+      },
+      "required": ["role", "email"]
+    }
+  },
+  "firestore": {
+    "reports": { "schema": "Report", "description": "Collection of community reports." },
+    "districts": { "schema": "District", "description": "Collection of district assemblies." },
+    "users": { "schema": "User", "description": "Collection of user profiles." }
+  }
+}

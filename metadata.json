@@ -1,0 +1,5 @@
+{
+  "name": "AssemblyVoice",
+  "description": "A community reporting platform for citizens to report local issues and for local assemblies to track and resolve them.",
+  "requestFramePermissions": ["geolocation"]
+}
