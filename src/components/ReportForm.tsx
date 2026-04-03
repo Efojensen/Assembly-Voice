@@ -12,7 +12,8 @@ const CategoryStep = ({ onNext }: { onNext: (cat: string) => void }) => {
     { id: 'light', label: 'Broken streetlight', icon: '💡' },
     { id: 'dumping', label: 'Illegal dumping', icon: '🗑️' },
     { id: 'water', label: 'Water supply', icon: '💧' },
-    { id: 'safety', label: 'Safety risk', icon: '⚠️' }
+    { id: 'safety', label: 'Safety risk', icon: '⚠️' },
+    { id: 'other', label: 'Other', icon: '❓' }
   ];
 
   const [selected, setSelected] = useState<string | null>(null);
