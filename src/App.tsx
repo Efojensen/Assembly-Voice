@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, LogOut, User, Building2 } from 'lucide-react';
+import { Menu, LogOut, User, Building2, ArrowLeft } from 'lucide-react';
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
@@ -11,15 +11,15 @@ import ReportForm from './components/ReportForm';
 import Tracking from './components/Tracking';
 import OfficerPortal from './components/OfficerPortal';
 import Transparency from './components/Transparency';
-import Welcome from './components/Welcome';
-import SignIn from './components/SignIn';
 import Authenticate from './components/Authentication';
 
 // Layout Component
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isOfficerPath = location.pathname.startsWith('/officer');
-  const isAuthPath = location.pathname === '/welcome' || location.pathname === '/signin';
+  const isAuthPath = location.pathname === '/auth';
+  const isHomePath = location.pathname === '/' || location.pathname === '/officer';
   const [user, setUser] = useState<any>(null);
   const selectedAssembly = localStorage.getItem('selectedAssembly') || 'KMA';
   const userRole = localStorage.getItem('userRole') || 'citizen';
@@ -35,27 +35,38 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     await signOut(auth);
     localStorage.removeItem('userRole');
     localStorage.removeItem('selectedAssembly');
-    window.location.href = '/welcome';
+    window.location.href = '/auth';
   };
 
   if (isAuthPath) return <>{children}</>;
-  
+
   return (
     <div className="min-h-screen bg-bg flex flex-col">
       <header className="bg-primary px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
-        <Link to="/" className="text-white font-medium tracking-wide flex items-center gap-2">
-          <Building2 size={20} />
-          <span className="text-xl">AssemblyVoice</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          {!isHomePath && !isAuthPath && (
+            <button
+              onClick={() => navigate(-1)}
+              className="text-white/80 hover:text-white p-1 -ml-1 transition-colors"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} />
+            </button>
+          )}
+          <Link to="/" className="text-white font-medium tracking-wide flex items-center gap-2">
+            <Building2 size={20} />
+            <span className="text-xl">AssemblyVoice</span>
+          </Link>
+        </div>
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 mr-2">
             <span className="text-[10px] text-white/60 font-bold uppercase tracking-tighter">District:</span>
             <span className="text-xs text-white font-bold">{selectedAssembly.toUpperCase()}</span>
           </div>
-          
+
           {!isOfficerPath ? (
-            <Link 
-              to="/tracking" 
+            <Link
+              to="/tracking"
               className="bg-white text-primary text-[10px] font-bold uppercase tracking-wider rounded-lg px-3 py-2 hover:bg-white/90 transition-colors"
             >
               Track Report
@@ -65,7 +76,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               AO
             </div>
           )}
-          
+
           <div className="relative group">
             <button className="text-white/80 p-1 hover:text-white transition-colors">
               <Menu size={20} />
@@ -75,7 +86,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <p className="text-xs font-bold text-text truncate">{user?.email || 'Guest User'}</p>
                 <p className="text-[10px] text-text-muted uppercase tracking-wider">{localStorage.getItem('userRole') || 'Citizen'}</p>
               </div>
-              <button 
+              <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-2 p-3 text-xs text-red-600 hover:bg-red-50 transition-colors"
               >
@@ -85,7 +96,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </header>
-      
+
       <main className="flex-grow max-w-md mx-auto w-full bg-bg shadow-sm">
         <AnimatePresence mode="wait">
           <motion.div
@@ -143,15 +154,13 @@ export default function App() {
     <Router>
       <Layout>
         <Routes>
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/authenticate" element={<Authenticate/>}/>
+          <Route path="/auth" element={<Authenticate />} />
 
-          <Route path="/" element={isAuth ? (role === 'officer' ? <Navigate to="/officer" /> : <Home />) : <Navigate to="/welcome" />} />
-          <Route path="/report/*" element={isAuth ? <ReportForm /> : <Navigate to="/welcome" />} />
-          <Route path="/tracking" element={isAuth ? <Tracking /> : <Navigate to="/welcome" />} />
-          <Route path="/officer/*" element={isAuth ? <OfficerPortal /> : <Navigate to="/welcome" />} />
-          <Route path="/transparency" element={isAuth ? <Transparency /> : <Navigate to="/welcome" />} />
+          <Route path="/" element={isAuth ? (role === 'officer' ? <Navigate to="/officer" /> : <Home />) : <Navigate to="/auth" />} />
+          <Route path="/report/*" element={isAuth ? <ReportForm /> : <Navigate to="/auth" />} />
+          <Route path="/tracking" element={isAuth ? <Tracking /> : <Navigate to="/auth" />} />
+          <Route path="/officer/*" element={isAuth ? <OfficerPortal /> : <Navigate to="/auth" />} />
+          <Route path="/transparency" element={isAuth ? <Transparency /> : <Navigate to="/auth" />} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

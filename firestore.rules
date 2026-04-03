@@ -63,6 +63,11 @@ service cloud.firestore {
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'officer' || isAdmin());
     }
 
+    function isAssemblyMember() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'assembly_member' || isAdmin());
+    }
+
     function isOfficerOfDistrict(districtId) {
       return isOfficer() &&
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.districtId == districtId || isAdmin());
@@ -78,7 +83,7 @@ service cloud.firestore {
     }
 
     function isValidUser(data) {
-      return data.role in ['citizen', 'officer', 'admin'] &&
+      return data.role in ['citizen', 'officer', 'assembly_member', 'admin'] &&
              data.email is string &&
              data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     }
@@ -89,7 +94,7 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'citizen';
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'citizen' || request.resource.data.role == 'assembly_member' || request.resource.data.role == 'officer');
       allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role);
       allow delete: if isAdmin();
     }

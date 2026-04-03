@@ -8,7 +8,7 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 
 const SignIn = () => {
   const navigate = useNavigate();
-  
+
   const selectedAssembly = localStorage.getItem('selectedAssembly') || 'kma';
   const assemblyName = selectedAssembly.toUpperCase();
 
@@ -31,7 +31,7 @@ const SignIn = () => {
         </div>
 
         <div className="space-y-4">
-          
+
 
           <div className="relative py-4">
             <div className="absolute inset-0 flex items-center">
