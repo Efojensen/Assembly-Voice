@@ -1,13 +1,13 @@
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { Building2, ArrowRight } from 'lucide-react';
 
 const Welcome = () => {
   const navigate = useNavigate();
   const assemblies = [
-    { id: 'kma', name: 'Kumasi Metropolitan Assembly (KMA)' },
-    { id: 'ama', name: 'Accra Metropolitan Assembly (AMA)' },
-    { id: 'tma', name: 'Tamale Metropolitan Assembly (TMA)' }
+    { id: 'k.m.a', name: 'Kumasi Metropolitan Assembly (K.M.A)' },
+    { id: 'a.m.a', name: 'Accra Metropolitan Assembly (A.M.A)' },
+    { id: 't.m.a', name: 'Tamale Metropolitan Assembly (T.M.A)' }
   ];
 
   const handleSelect = (id: string) => {
@@ -17,7 +17,7 @@ const Welcome = () => {
 
   return (
     <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-6 text-center">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center mb-6 backdrop-blur-md border border-white/30"
@@ -32,12 +32,12 @@ const Welcome = () => {
         className="space-y-2 mb-10"
       >
         <h1 className="text-3xl font-bold text-white tracking-tight">AssemblyVoice</h1>
-        <p className="text-white/70 text-sm max-w-[240px] mx-auto">
+        <p className="text-white/70 text-sm max-w-60 mx-auto">
           Connecting citizens with local government for a better community.
         </p>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}

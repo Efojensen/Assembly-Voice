@@ -3,6 +3,7 @@ import { useNavigate, Routes, Route, Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { ChevronLeft, Camera, MapPin, Check, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
+import PhotoUpload from './PhotoUpload';
 
 // Step Components
 const CategoryStep = ({ onNext }: { onNext: (cat: string) => void }) => {
@@ -23,16 +24,15 @@ const CategoryStep = ({ onNext }: { onNext: (cat: string) => void }) => {
       <div className="space-y-1">
         <h2 className="text-[11px] font-bold text-primary uppercase tracking-widest">Step 1 — What is the problem?</h2>
       </div>
-      
       <div className="grid grid-cols-3 gap-3">
         {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setSelected(cat.id)}
             className={cn(
-              "flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all",
-              selected === cat.id 
-                ? "bg-primary-pale border-primary text-primary" 
+              "flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all cursor-pointer",
+              selected === cat.id
+                ? "bg-primary-pale border-primary text-primary"
                 : "bg-white border-border text-text-muted hover:border-primary/30"
             )}
           >
@@ -42,12 +42,12 @@ const CategoryStep = ({ onNext }: { onNext: (cat: string) => void }) => {
         ))}
       </div>
 
-      <button 
+      <button
         disabled={!selected}
         onClick={() => selected && onNext(selected)}
         className={cn(
           "w-full py-4 rounded-xl font-semibold transition-colors",
-          selected ? "bg-secondary text-white" : "bg-border text-text-light cursor-not-allowed"
+          selected ? "bg-secondary text-white cursor-pointer" : "bg-border text-text-light cursor-not-allowed"
         )}
       >
         Continue →
@@ -57,8 +57,47 @@ const CategoryStep = ({ onNext }: { onNext: (cat: string) => void }) => {
 };
 
 const DetailsStep = ({ category, onNext }: { category: string, onNext: (data: any) => void }) => {
-  const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [description, setDescription] = useState('');
+  const [gettingLocation, setGettingLocation] = useState(false);
+
+  const handleGetLocation = () => {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported by your browser");
+    return;
+  }
+
+  setGettingLocation(true);
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const { latitude, longitude } = position.coords;
+
+      // ✅ Show something immediately
+      setLocation(`${latitude}, ${longitude}`);
+
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+        );
+        const data = await res.json();
+
+        if (data?.display_name) {
+          setLocation(data.display_name);
+        }
+      } catch (err) {
+        console.error("Geocoding failed:", err);
+      } finally {
+        setGettingLocation(false);
+      }
+    },
+    (error) => {
+      console.error(error);
+      alert("Location permission denied or unavailable");
+      setGettingLocation(false);
+    }
+  );
+};
 
   return (
     <div className="space-y-6">
@@ -69,8 +108,8 @@ const DetailsStep = ({ category, onNext }: { category: string, onNext: (data: an
       <div className="space-y-4">
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-primary">What exactly did you see?</label>
-          <textarea 
-            className="w-full border-2 border-border rounded-xl p-3 text-sm focus:border-secondary outline-none min-h-[100px] resize-none"
+          <textarea
+            className="w-full border-2 border-border rounded-xl p-3 text-sm focus:border-secondary outline-none min-h-25 resize-none"
             placeholder="e.g. Large pothole on main road near the market, cars swerving to avoid it..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -79,22 +118,23 @@ const DetailsStep = ({ category, onNext }: { category: string, onNext: (data: an
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-primary">Add a photo (optional)</label>
-          <div className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center gap-2 bg-white cursor-pointer hover:bg-primary-pale/30 transition-colors">
-            <Camera className="text-text-light" size={28} />
-            <div className="text-xs text-text-light font-medium">Tap to take or upload a photo</div>
-            <div className="text-[10px] text-text-light">helps the assembly verify faster</div>
-          </div>
+          <PhotoUpload />
         </div>
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-primary">Location</label>
           <div className="flex gap-2">
-            <button className="bg-primary text-white text-[11px] font-bold px-3 py-3 rounded-lg flex items-center gap-1 whitespace-nowrap">
-              <MapPin size={14} /> Use my location
+            <button
+              onClick={handleGetLocation}
+              disabled={gettingLocation}
+              className="bg-primary hover:bg-green-600 text-white text-[11px] font-bold px-3 py-3 rounded-lg flex items-center gap-1 whitespace-nowrap cursor-pointer disabled:opacity-60"
+            >
+              <MapPin size={14} />
+              {gettingLocation ? "Getting..." : "Use my location"}
             </button>
-            <div className="flex-grow flex items-center gap-2">
+            <div className="grow flex items-center gap-2">
               <span className="text-[10px] text-text-light">or</span>
-              <input 
+              <input
                 className="w-full border-2 border-border rounded-lg p-2.5 text-sm focus:border-secondary outline-none"
                 placeholder="Type address..."
                 value={location}
@@ -105,7 +145,7 @@ const DetailsStep = ({ category, onNext }: { category: string, onNext: (data: an
         </div>
       </div>
 
-      <button 
+      <button
         disabled={!description}
         onClick={() => onNext({ description, location })}
         className={cn(
@@ -134,7 +174,7 @@ const ContactStep = ({ onNext }: { onNext: (phone: string) => void }) => {
       <div className="space-y-4">
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-primary">Mobile number (optional)</label>
-          <input 
+          <input
             className="w-full border-2 border-border rounded-xl p-3 text-sm focus:border-secondary outline-none"
             placeholder="+233 __ ___ ____"
             type="tel"
@@ -152,13 +192,13 @@ const ContactStep = ({ onNext }: { onNext: (phone: string) => void }) => {
       </div>
 
       <div className="space-y-3">
-        <button 
+        <button
           onClick={() => onNext(phone)}
           className="w-full py-4 bg-secondary text-white rounded-xl font-semibold hover:bg-secondary/90 transition-colors"
         >
           Review and submit
         </button>
-        <button 
+        <button
           onClick={() => onNext('')}
           className="w-full py-3 bg-transparent text-secondary border-2 border-secondary rounded-xl font-semibold hover:bg-secondary/5 transition-colors"
         >
@@ -203,7 +243,7 @@ const ReviewStep = ({ data, onConfirm }: { data: any, onConfirm: () => void }) =
         </div>
       </div>
 
-      <button 
+      <button
         onClick={onConfirm}
         className="w-full py-4 bg-secondary text-white rounded-xl font-semibold hover:bg-secondary/90 transition-colors"
       >
@@ -235,7 +275,7 @@ const SuccessStep = ({ trackingCode }: { trackingCode: string }) => {
       </div>
 
       <div className="bg-white border-2 border-border rounded-xl p-4 flex items-center justify-between">
-        <span className="text-xs text-text-muted text-left flex-grow mr-4">Send me SMS updates when status changes</span>
+        <span className="text-xs text-text-muted text-left grow mr-4">Send me SMS updates when status changes</span>
         <div className="w-10 h-5 bg-secondary rounded-full relative cursor-pointer">
           <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 right-0.5" />
         </div>
@@ -251,13 +291,13 @@ const SuccessStep = ({ trackingCode }: { trackingCode: string }) => {
       </div>
 
       <div className="space-y-3">
-        <button 
+        <button
           onClick={() => navigate('/tracking')}
           className="w-full py-4 bg-secondary text-white rounded-xl font-semibold hover:bg-secondary/90 transition-colors"
         >
           Track my report →
         </button>
-        <button 
+        <button
           onClick={() => navigate('/')}
           className="w-full py-3 bg-transparent text-primary border-2 border-primary rounded-xl font-semibold hover:bg-primary/5 transition-colors"
         >
@@ -288,8 +328,8 @@ const ReportForm = () => {
       {step < 5 && (
         <div className="flex justify-center gap-2">
           {[1, 2, 3, 4, 5].map((s) => (
-            <div 
-              key={s} 
+            <div
+              key={s}
               className={cn(
                 "h-2 rounded-full transition-all duration-300",
                 s === step ? "w-6 bg-secondary" : s < step ? "w-2 bg-primary" : "w-2 bg-border"

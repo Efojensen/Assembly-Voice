@@ -19,7 +19,7 @@ import Authenticate from './components/Authentication';
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const isOfficerPath = location.pathname.startsWith('/officer');
-  const isAuthPath = location.pathname === '/welcome' || location.pathname === '/signin';
+  const isAuthPath = location.pathname === '/welcome' || location.pathname === '/signin' || location.pathname === '/authenticate' ;
   const [user, setUser] = useState<any>(null);
   const selectedAssembly = localStorage.getItem('selectedAssembly') || 'KMA';
   const userRole = localStorage.getItem('userRole') || 'citizen';
@@ -39,7 +39,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   };
 
   if (isAuthPath) return <>{children}</>;
-  
+
   return (
     <div className="min-h-screen bg-bg flex flex-col">
       <header className="bg-primary px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
@@ -52,10 +52,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             <span className="text-[10px] text-white/60 font-bold uppercase tracking-tighter">District:</span>
             <span className="text-xs text-white font-bold">{selectedAssembly.toUpperCase()}</span>
           </div>
-          
+
           {!isOfficerPath ? (
-            <Link 
-              to="/tracking" 
+            <Link
+              to="/tracking"
               className="bg-white text-primary text-[10px] font-bold uppercase tracking-wider rounded-lg px-3 py-2 hover:bg-white/90 transition-colors"
             >
               Track Report
@@ -65,7 +65,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               AO
             </div>
           )}
-          
+
           <div className="relative group">
             <button className="text-white/80 p-1 hover:text-white transition-colors">
               <Menu size={20} />
@@ -75,7 +75,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 <p className="text-xs font-bold text-text truncate">{user?.email || 'Guest User'}</p>
                 <p className="text-[10px] text-text-muted uppercase tracking-wider">{localStorage.getItem('userRole') || 'Citizen'}</p>
               </div>
-              <button 
+              <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-2 p-3 text-xs text-red-600 hover:bg-red-50 transition-colors"
               >
@@ -85,8 +85,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </header>
-      
-      <main className="flex-grow max-w-md mx-auto w-full bg-bg shadow-sm">
+
+      <main className="grow max-w-md mx-auto w-full bg-bg shadow-sm">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -145,7 +145,7 @@ export default function App() {
         <Routes>
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/signin" element={<SignIn />} />
-          <Route path="/authenticate" element={<Authenticate/>}/>
+          <Route path="/authenticate" element={<Authenticate />} />
 
           <Route path="/" element={isAuth ? (role === 'officer' ? <Navigate to="/officer" /> : <Home />) : <Navigate to="/welcome" />} />
           <Route path="/report/*" element={isAuth ? <ReportForm /> : <Navigate to="/welcome" />} />
