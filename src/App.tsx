@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, LogOut, User, Building2, ArrowLeft } from 'lucide-react';
+import { Menu, LogOut, User, Building2 } from 'lucide-react';
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
@@ -11,15 +11,15 @@ import ReportForm from './components/ReportForm';
 import Tracking from './components/Tracking';
 import OfficerPortal from './components/OfficerPortal';
 import Transparency from './components/Transparency';
+import Welcome from './components/Welcome';
+import SignIn from './components/SignIn';
 import Authenticate from './components/Authentication';
 
 // Layout Component
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const navigate = useNavigate();
   const isOfficerPath = location.pathname.startsWith('/officer');
-  const isAuthPath = location.pathname === '/auth';
-  const isHomePath = location.pathname === '/' || location.pathname === '/officer';
+  const isAuthPath = location.pathname === '/welcome' || location.pathname === '/signin' || location.pathname === '/authenticate' ;
   const [user, setUser] = useState<any>(null);
   const selectedAssembly = localStorage.getItem('selectedAssembly') || 'KMA';
   const userRole = localStorage.getItem('userRole') || 'citizen';
@@ -35,7 +35,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     await signOut(auth);
     localStorage.removeItem('userRole');
     localStorage.removeItem('selectedAssembly');
-    window.location.href = '/auth';
+    window.location.href = '/welcome';
   };
 
   if (isAuthPath) return <>{children}</>;
@@ -43,21 +43,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-bg flex flex-col">
       <header className="bg-primary px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-md">
-        <div className="flex items-center gap-3">
-          {!isHomePath && !isAuthPath && (
-            <button
-              onClick={() => navigate(-1)}
-              className="text-white/80 hover:text-white p-1 -ml-1 transition-colors"
-              aria-label="Go back"
-            >
-              <ArrowLeft size={20} />
-            </button>
-          )}
-          <Link to="/" className="text-white font-medium tracking-wide flex items-center gap-2">
-            <Building2 size={20} />
-            <span className="text-xl">AssemblyVoice</span>
-          </Link>
-        </div>
+        <Link to="/" className="text-white font-medium tracking-wide flex items-center gap-2">
+          <Building2 size={20} />
+          <span className="text-xl">AssemblyVoice</span>
+        </Link>
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 mr-2">
             <span className="text-[10px] text-white/60 font-bold uppercase tracking-tighter">District:</span>
@@ -97,7 +86,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
 
-      <main className="flex-grow max-w-md mx-auto w-full bg-bg shadow-sm">
+      <main className="grow max-w-md mx-auto w-full bg-bg shadow-sm">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -154,13 +143,15 @@ export default function App() {
     <Router>
       <Layout>
         <Routes>
-          <Route path="/auth" element={<Authenticate />} />
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/authenticate" element={<Authenticate />} />
 
-          <Route path="/" element={isAuth ? (role === 'officer' ? <Navigate to="/officer" /> : <Home />) : <Navigate to="/auth" />} />
-          <Route path="/report/*" element={isAuth ? <ReportForm /> : <Navigate to="/auth" />} />
-          <Route path="/tracking" element={isAuth ? <Tracking /> : <Navigate to="/auth" />} />
-          <Route path="/officer/*" element={isAuth ? <OfficerPortal /> : <Navigate to="/auth" />} />
-          <Route path="/transparency" element={isAuth ? <Transparency /> : <Navigate to="/auth" />} />
+          <Route path="/" element={isAuth ? (role === 'officer' ? <Navigate to="/officer" /> : <Home />) : <Navigate to="/welcome" />} />
+          <Route path="/report/*" element={isAuth ? <ReportForm /> : <Navigate to="/welcome" />} />
+          <Route path="/tracking" element={isAuth ? <Tracking /> : <Navigate to="/welcome" />} />
+          <Route path="/officer/*" element={isAuth ? <OfficerPortal /> : <Navigate to="/welcome" />} />
+          <Route path="/transparency" element={isAuth ? <Transparency /> : <Navigate to="/welcome" />} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
