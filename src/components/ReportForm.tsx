@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate, Routes, Route, Link } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { ChevronLeft, Camera, MapPin, Check, Info } from 'lucide-react';
+import { useState } from 'react';
 import { cn } from '../lib/utils';
 import PhotoUpload from './PhotoUpload';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Check, Info } from 'lucide-react';
 
 // Step Components
 const CategoryStep = ({ onNext }: { onNext: (cat: string) => void }) => {
@@ -59,45 +58,46 @@ const CategoryStep = ({ onNext }: { onNext: (cat: string) => void }) => {
 const DetailsStep = ({ category, onNext }: { category: string, onNext: (data: any) => void }) => {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
+  const [photo, setPhoto] = useState<File | null>(null);
   const [gettingLocation, setGettingLocation] = useState(false);
 
   const handleGetLocation = () => {
-  if (!navigator.geolocation) {
-    alert("Geolocation is not supported by your browser");
-    return;
-  }
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
 
-  setGettingLocation(true);
+    setGettingLocation(true);
 
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      const { latitude, longitude } = position.coords;
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
 
-      // ✅ Show something immediately
-      setLocation(`${latitude}, ${longitude}`);
+        // ✅ Show something immediately
+        setLocation(`${latitude}, ${longitude}`);
 
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-        );
-        const data = await res.json();
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await res.json();
 
-        if (data?.display_name) {
-          setLocation(data.display_name);
+          if (data?.display_name) {
+            setLocation(data.display_name);
+          }
+        } catch (err) {
+          console.error("Geocoding failed:", err);
+        } finally {
+          setGettingLocation(false);
         }
-      } catch (err) {
-        console.error("Geocoding failed:", err);
-      } finally {
+      },
+      (error) => {
+        console.error(error);
+        alert("Location permission denied or unavailable");
         setGettingLocation(false);
       }
-    },
-    (error) => {
-      console.error(error);
-      alert("Location permission denied or unavailable");
-      setGettingLocation(false);
-    }
-  );
-};
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -118,7 +118,7 @@ const DetailsStep = ({ category, onNext }: { category: string, onNext: (data: an
 
         <div className="space-y-1.5">
           <label className="text-xs font-bold text-primary">Add a photo (optional)</label>
-          <PhotoUpload />
+          <PhotoUpload onChange={(file: File) => setPhoto(file)} />
         </div>
 
         <div className="space-y-1.5">
@@ -147,7 +147,7 @@ const DetailsStep = ({ category, onNext }: { category: string, onNext: (data: an
 
       <button
         disabled={!description}
-        onClick={() => onNext({ description, location })}
+        onClick={() => onNext({ description, location, photo })}
         className={cn(
           "w-full py-4 rounded-xl font-semibold transition-colors",
           description ? "bg-secondary text-white" : "bg-border text-text-light cursor-not-allowed"
@@ -315,8 +315,37 @@ const ReportForm = () => {
     description: '',
     location: '',
     phone: '',
+    photo: null as File | null,
     trackingCode: 'KMA-2026-00347'
   });
+  const submitReport = async () => {
+    const data = new FormData();
+
+    data.append('category', formData.category);
+    data.append('description', formData.description);
+    data.append('location', formData.location);
+    data.append('phone', formData.phone);
+
+    if (formData.photo) {
+      data.append('photo', formData.photo);
+    }
+
+    try {
+      const res = await fetch('https://example.com/api/report', {
+        method: 'POST',
+        body: data,
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to submit report');
+      }
+
+      setStep(5);
+    } catch (err) {
+      console.error(err);
+      alert('Submission failed');
+    }
+  };
 
   const handleNext = (data: any) => {
     setFormData(prev => ({ ...prev, ...data }));
@@ -342,7 +371,7 @@ const ReportForm = () => {
       {step === 1 && <CategoryStep onNext={(cat) => handleNext({ category: cat })} />}
       {step === 2 && <DetailsStep category={formData.category} onNext={handleNext} />}
       {step === 3 && <ContactStep onNext={(phone) => handleNext({ phone })} />}
-      {step === 4 && <ReviewStep data={formData} onConfirm={() => setStep(5)} />}
+      {step === 4 && <ReviewStep data={formData} onConfirm={submitReport} />}
       {step === 5 && <SuccessStep trackingCode={formData.trackingCode} />}
     </div>
   );
